@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Mario Campos <https://github.com/mariojcr>
+# SPDX-License-Identifier: Apache-2.0
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # rustup installs the toolchain of rust-toolchain.toml on the first cargo call
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --locked
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.30.1@sha256:b109bc5f8f76a38196a3e413704fc5b9e3c32360bce4e4b603bd6f45b3721dbb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # A 0 exit is not enough: if git cannot read the checkout, gitleaks scans nothing and still exits 0,
+      # so the scanned commits are checked against what git counts.
+      - name: gitleaks over the whole history
+        run: |
+          set -euo pipefail
+          expected=$(git log --all --no-merges --diff-filter=ACDMRTUXB --format=%H | sort -u | wc -l)
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo:ro" \
+            -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory -e GIT_CONFIG_VALUE_0=/repo \
+            "$GITLEAKS_IMAGE" git /repo --config /repo/.gitleaks.toml --redact --verbose --no-color --exit-code 1 \
+            2>&1 | tee "$RUNNER_TEMP/gitleaks.log"
+          scanned=$(grep -oE '[0-9]+ commits scanned' "$RUNNER_TEMP/gitleaks.log" | grep -oE '^[0-9]+' || true)
+          if [ "${scanned:-0}" != "$expected" ]; then
+            echo "::error::gitleaks scanned ${scanned:-0} commits, but the history has $expected commits with changes"
+            exit 1
+          fi

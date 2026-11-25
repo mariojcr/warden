@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Mario Campos <https://github.com/mariojcr>
+# SPDX-License-Identifier: Apache-2.0
+
+[extend]
+useDefault = true
+
+# A doc comment that reads "connection tokens: ChaCha20-Poly1305", and the made-up Android key hashes the
+# config tests check the format with
+[allowlist]
+description = "documentation and test fixtures"
+regexTarget = "line"
+regexes = ['''tokens: ChaCha20-Poly1305''', '''(?i)android:apk-key-hash:[A-Za-z0-9_/=-]*''']
