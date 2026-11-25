@@ -1180,7 +1180,6 @@ pub async fn google_callback(State(app): State<Arc<App>>, headers: HeaderMap, Qu
     page(StatusCode::OK, pages::google_connected(&row.account, &row.scopes))
 }
 
-/// The only script: the CSP allows just `script-src 'self'`.
 pub async fn script() -> Response {
     ([(header::CONTENT_TYPE, "text/javascript; charset=utf-8")], include_str!("../static/warden.js")).into_response()
 }

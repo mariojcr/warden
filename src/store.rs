@@ -1474,7 +1474,6 @@ impl Store {
     }
 }
 
-/// A request status as shown to the owner.
 pub fn status_label(s: &str) -> &'static str {
     match s {
         "pending" => "pending",
