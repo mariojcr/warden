@@ -23,7 +23,7 @@ use std::time::Duration;
 use crate::github::{AAD, Issued, Poll};
 use crate::pages::{self, Kind};
 use crate::store::{Approval, Audit, ConnectionRow, FLOW_TTL, Flow, Via};
-use crate::util::{b64url, ct_eq, is_id, new_secret, now, random, sha256_hex};
+use crate::util::{b64url, ct_eq, is_id, now, random, sha256_hex};
 
 pub const CSRF_COOKIE: &str = "__Host-warden_csrf";
 pub const FLOW_COOKIE: &str = "__Host-warden_flow";
@@ -113,8 +113,8 @@ fn audit(app: &App, actor: &str, event: &str, detail: serde_json::Value, request
 
 /// `fresh` forces a new passkey login rather than reusing the provider's session.
 async fn start_oidc(app: &App, headers: &HeaderMap, action: &str, target: &str, fresh: bool) -> Response {
-    let state = new_secret("st");
-    let nonce = new_secret("n");
+    let state = b64url(&random::<32>());
+    let nonce = b64url(&random::<32>());
     let verifier = b64url(&random::<32>());
     let (browser, set) = match cookie(headers, FLOW_COOKIE).filter(|c| c.len() >= 32) {
         Some(b) => (b, None),
