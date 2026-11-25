@@ -45,7 +45,6 @@ fn varint(mut n: usize, out: &mut Vec<u8>) {
     }
 }
 
-/// Copies the common prefix and inserts the rest.
 pub fn delta_against(base: &[u8], target: &[u8]) -> Vec<u8> {
     let mut d = Vec::new();
     varint(base.len(), &mut d);

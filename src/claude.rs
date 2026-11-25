@@ -51,7 +51,6 @@ pub const POWER: &str = "claude_session";
 pub const RENEW_MARGIN: i64 = 1800;
 /// After a renewal claude.ai did not answer.
 pub const RETRY_AFTER: i64 = 60;
-/// When claude.ai omits `expires_in`.
 const DEFAULT_EXPIRES_IN: i64 = 8 * 3600;
 
 /// No `Debug`: it holds the tokens.

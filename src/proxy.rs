@@ -238,8 +238,7 @@ fn write_allowed(method: &Method, rest: &[&str]) -> bool {
     WRITE_RULES.iter().any(|(m, p)| *m == method.as_str() && rule_matches(p, rest))
 }
 
-/// An allowlist, so a new GitHub endpoint stays closed until added here: a blanket GET once exposed
-/// secret scanning alerts, Actions variables and webhook deliveries. `""` is the repository itself.
+/// An allowlist, so a new GitHub endpoint stays closed until added here. `""` is the repository itself.
 pub const READ_RULES: &[&str] = &[
     "",
     "contents",
@@ -792,7 +791,7 @@ async fn forward(app: Arc<App>, surface: Surface, path: String, req: Request) ->
 }
 
 /// Every write `api_needs` has a rule for is buffered and checked: both come from `api_route`, so a rule
-/// cannot exist without its check (a rerun rule once did, and plain write grants could re-run workflows).
+/// cannot exist without its check.
 fn api_reads_body(method: &Method, rest: &[String]) -> bool {
     api_route(method, rest).is_some()
 }
